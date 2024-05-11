@@ -1,0 +1,234 @@
+Last login: Sat May 11 16:09:43 on ttys001
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+(base) 192:~ sunnyliang$ psql postgres
+psql (15.7 (Homebrew))
+Type "help" for help.
+
+postgres=# \l
+                                               List of databases
+   Name    |   Owner    | Encoding | Collate | Ctype | ICU Locale | Locale Provider |     Access privileges     
+-----------+------------+----------+---------+-------+------------+-----------------+---------------------------
+ postgres  | sunnyliang | UTF8     | C       | C     |            | libc            | 
+ template0 | sunnyliang | UTF8     | C       | C     |            | libc            | =c/sunnyliang            +
+           |            |          |         |       |            |                 | sunnyliang=CTc/sunnyliang
+ template1 | sunnyliang | UTF8     | C       | C     |            | libc            | =c/sunnyliang            +
+           |            |          |         |       |            |                 | sunnyliang=CTc/sunnyliang
+(3 rows)
+
+postgres=# CREATE DATABASE bikes;
+CREATE DATABASE
+postgres=# \l
+                                               List of databases
+   Name    |   Owner    | Encoding | Collate | Ctype | ICU Locale | Locale Provider |     Access privileges     
+-----------+------------+----------+---------+-------+------------+-----------------+---------------------------
+ bikes     | sunnyliang | UTF8     | C       | C     |            | libc            | 
+ postgres  | sunnyliang | UTF8     | C       | C     |            | libc            | 
+ template0 | sunnyliang | UTF8     | C       | C     |            | libc            | =c/sunnyliang            +
+           |            |          |         |       |            |                 | sunnyliang=CTc/sunnyliang
+ template1 | sunnyliang | UTF8     | C       | C     |            | libc            | =c/sunnyliang            +
+           |            |          |         |       |            |                 | sunnyliang=CTc/sunnyliang
+(4 rows)
+
+postgres=# \c bikes;
+You are now connected to database "bikes" as user "sunnyliang".
+bikes=# CREATE TABLE bikes();
+CREATE TABLE
+bikes=# \d
+          List of relations
+ Schema | Name  | Type  |   Owner    
+--------+-------+-------+------------
+ public | bikes | table | sunnyliang
+(1 row)
+
+bikes=# ALTER TABLE bikes ADD COLUMN bike_id SERIAL PRIMARY KEY;
+ALTER TABLE
+bikes=# \d
+                 List of relations
+ Schema |       Name        |   Type   |   Owner    
+--------+-------------------+----------+------------
+ public | bikes             | table    | sunnyliang
+ public | bikes_bike_id_seq | sequence | sunnyliang
+(2 rows)
+
+bikes=# \d bike
+Did not find any relation named "bike".
+bikes=# \d bikes
+                               Table "public.bikes"
+ Column  |  Type   | Collation | Nullable |                Default                 
+---------+---------+-----------+----------+----------------------------------------
+ bike_id | integer |           | not null | nextval('bikes_bike_id_seq'::regclass)
+Indexes:
+    "bikes_pkey" PRIMARY KEY, btree (bike_id)
+
+bikes=# ALTER TABLE bikes ADD COLUMN type VARCHAR(50) NOT NULL;
+ALTER TABLE
+bikes=# \d bikes
+                                      Table "public.bikes"
+ Column  |         Type          | Collation | Nullable |                Default                 
+---------+-----------------------+-----------+----------+----------------------------------------
+ bike_id | integer               |           | not null | nextval('bikes_bike_id_seq'::regclass)
+ type    | character varying(50) |           | not null | 
+Indexes:
+    "bikes_pkey" PRIMARY KEY, btree (bike_id)
+
+bikes=# ALTER TABLE bikes ADD COLUMN size INT NOT NULL;
+ALTER TABLE
+bikes=# ALTER TABLE bikes ADD COLUMN available BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE
+bikes=# \d bikes
+                                       Table "public.bikes"
+  Column   |         Type          | Collation | Nullable |                Default                 
+-----------+-----------------------+-----------+----------+----------------------------------------
+ bike_id   | integer               |           | not null | nextval('bikes_bike_id_seq'::regclass)
+ type      | character varying(50) |           | not null | 
+ size      | integer               |           | not null | 
+ available | boolean               |           | not null | true
+Indexes:
+    "bikes_pkey" PRIMARY KEY, btree (bike_id)
+
+bikes=# CREATE TABLE customers();
+CREATE TABLE
+bikes=# ALTER TABLE customers ADD COLUMN customer_id SERIAL PRIMARY KEY;
+ALTER TABLE
+bikes=# \d customers
+                                   Table "public.customers"
+   Column    |  Type   | Collation | Nullable |                    Default                     
+-------------+---------+-----------+----------+------------------------------------------------
+ customer_id | integer |           | not null | nextval('customers_customer_id_seq'::regclass)
+Indexes:
+    "customers_pkey" PRIMARY KEY, btree (customer_id)
+
+bikes=# ALTER TABLE customers ADD COLUMN phone VARCHAR(15) NOT NULL UNIQUE;
+ALTER TABLE
+bikes=# ALTER TABLE customers ADD COLUMN name VARCHAR(40) NOT NULL;
+ALTER TABLE
+bikes=# \d customers
+                                          Table "public.customers"
+   Column    |         Type          | Collation | Nullable |                    Default                     
+-------------+-----------------------+-----------+----------+------------------------------------------------
+ customer_id | integer               |           | not null | nextval('customers_customer_id_seq'::regclass)
+ phone       | character varying(15) |           | not null | 
+ name        | character varying(40) |           | not null | 
+Indexes:
+    "customers_pkey" PRIMARY KEY, btree (customer_id)
+    "customers_phone_key" UNIQUE CONSTRAINT, btree (phone)
+
+bikes=# CREATE TABLE rentals();
+CREATE TABLE
+bikes=# ALTER TABLE rentals ADD COLUMN rental_id SERIAL PRIMARY KEY;
+ALTER TABLE
+bikes=# \d rentals
+                                 Table "public.rentals"
+  Column   |  Type   | Collation | Nullable |                  Default                   
+-----------+---------+-----------+----------+--------------------------------------------
+ rental_id | integer |           | not null | nextval('rentals_rental_id_seq'::regclass)
+Indexes:
+    "rentals_pkey" PRIMARY KEY, btree (rental_id)
+
+bikes=# ALTER TABLE rentals ADD COLUMN customer_id INT NOT NULL;
+ALTER TABLE
+bikes=# ALTER TABLE rentals ADD FOREIGN KEY(customer_id) REFERENCES customers(customer_id);
+ALTER TABLE
+bikes=# \d rentals
+                                  Table "public.rentals"
+   Column    |  Type   | Collation | Nullable |                  Default                   
+-------------+---------+-----------+----------+--------------------------------------------
+ rental_id   | integer |           | not null | nextval('rentals_rental_id_seq'::regclass)
+ customer_id | integer |           | not null | 
+Indexes:
+    "rentals_pkey" PRIMARY KEY, btree (rental_id)
+Foreign-key constraints:
+    "rentals_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+
+bikes=# ALTER TABLE rentals ADD COLUMN bike_id INT NOT NULL;
+ALTER TABLE
+bikes=# ALTER TABLE rentals ADD FOREIGN KEY(bike_id) REFERENCES bikes(bike_id);
+ALTER TABLE
+bikes=# \d rentals
+                                  Table "public.rentals"
+   Column    |  Type   | Collation | Nullable |                  Default                   
+-------------+---------+-----------+----------+--------------------------------------------
+ rental_id   | integer |           | not null | nextval('rentals_rental_id_seq'::regclass)
+ customer_id | integer |           | not null | 
+ bike_id     | integer |           | not null | 
+Indexes:
+    "rentals_pkey" PRIMARY KEY, btree (rental_id)
+Foreign-key constraints:
+    "rentals_bike_id_fkey" FOREIGN KEY (bike_id) REFERENCES bikes(bike_id)
+    "rentals_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+
+bikes=# ALTER TABLE rentals ADD COLUMN date_rented DATE NOT NULL DEFAULT NOW();
+ALTER TABLE
+bikes=# \d rentals
+                                  Table "public.rentals"
+   Column    |  Type   | Collation | Nullable |                  Default                   
+-------------+---------+-----------+----------+--------------------------------------------
+ rental_id   | integer |           | not null | nextval('rentals_rental_id_seq'::regclass)
+ customer_id | integer |           | not null | 
+ bike_id     | integer |           | not null | 
+ date_rented | date    |           | not null | now()
+Indexes:
+    "rentals_pkey" PRIMARY KEY, btree (rental_id)
+Foreign-key constraints:
+    "rentals_bike_id_fkey" FOREIGN KEY (bike_id) REFERENCES bikes(bike_id)
+    "rentals_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+
+bikes=# ALTER TABLE rentals ADD COLUMN date_returned DATE;
+ALTER TABLE
+bikes=# \d
+                     List of relations
+ Schema |           Name            |   Type   |   Owner    
+--------+---------------------------+----------+------------
+ public | bikes                     | table    | sunnyliang
+ public | bikes_bike_id_seq         | sequence | sunnyliang
+ public | customers                 | table    | sunnyliang
+ public | customers_customer_id_seq | sequence | sunnyliang
+ public | rentals                   | table    | sunnyliang
+ public | rentals_rental_id_seq     | sequence | sunnyliang
+(6 rows)
+
+bikes=# INSERT INTO bikes(type, size) VALUES('Mountain', 27);
+INSERT 0 1
+bikes=# SELECT * FROM bikes;
+ bike_id |   type   | size | available 
+---------+----------+------+-----------
+       1 | Mountain |   27 | t
+(1 row)
+
+bikes=# INSERT INTO bikes(type, size) VALUES('Mountain', 28);
+INSERT 0 1
+bikes=# INSERT INTO bikes(type, size) VALUES('Mountain', 29);
+INSERT 0 1
+bikes=# INSERT INTO bikes(type, size) VALUES('Road', 27);
+INSERT 0 1
+bikes=# SELECT * FROM bikes;
+ bike_id |   type   | size | available 
+---------+----------+------+-----------
+       1 | Mountain |   27 | t
+       2 | Mountain |   28 | t
+       3 | Mountain |   29 | t
+       4 | Road     |   27 | t
+(4 rows)
+
+bikes=# INSERT INTO bikes(type, size) VALUES('Road', 28), ('Road', 29);
+INSERT 0 2
+bikes=# INSERT INTO bikes(type, size) VALUES('BMX', 19), ('BMX', 20), ('BMX', 21);
+INSERT 0 3
+bikes=# SELECT * FROM bikes;
+ bike_id |   type   | size | available 
+---------+----------+------+-----------
+       1 | Mountain |   27 | t
+       2 | Mountain |   28 | t
+       3 | Mountain |   29 | t
+       4 | Road     |   27 | t
+       5 | Road     |   28 | t
+       6 | Road     |   29 | t
+       7 | BMX      |   19 | t
+       8 | BMX      |   20 | t
+       9 | BMX      |   21 | t
+(9 rows)
+
+bikes=# 
